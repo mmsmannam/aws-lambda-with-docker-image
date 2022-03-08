@@ -12,40 +12,34 @@ pipeline {
     stages {
  
         stage('Install sam-cli') {
-             steps { 
+          steps {
               script { 
                 if (fileExists('aws-sam-cli-linux-x86_64.zip')) {
-            sh '''
-               rm aws-sam-cli-linux-x86_64.zip
-               rm -rf sam-installation
-               wget https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
-               unzip aws-sam-cli-linux-x86_64.zip -d sam-installation
-               ./sam-installation/install --update
-               /usr/local/bin/sam --version
-            '''
-            }
-            else{
-                sh '''
+                    sh "/usr/local/bin/sam --version"  
+                }
+                else{
+               sh '''
                 wget https://github.com/aws/aws-sam-cli/releases/latest/download/aws-sam-cli-linux-x86_64.zip
                 unzip aws-sam-cli-linux-x86_64.zip -d sam-installation
-               ./sam-installation/install --update
+                sudo ./sam-installation/install --update
+                /usr/local/bin/sam --version
              '''  
+            }            
             }
-          }
-          }
-        }
+           }
+         }
                  
-        // stage('Cloning Git') {
-        //     steps {
-        //         checkout([$class: 'GitSCM', branches: [[name: '*/main']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '', url: 'https://github.com/mmsmannam/aws-lambda-with-docker-image.git']]])     
-        //      }
-        // }
+        stage('Cloning Git') {
+            steps {
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '', url: 'https://github.com/mmsmannam/aws-lambda-with-docker-image.git']]])     
+             }
+        }
     
        stage('Logging into AWS ECR') {
             steps {
                 script {
                 sh "\$(aws ecr get-login --no-include-email --region us-east-1)"
-                sh "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 884202029588.dkr.ecr.us-east-1.amazonaws.com"
+                sh "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com"
                 }
                 
             }
