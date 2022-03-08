@@ -31,7 +31,7 @@ pipeline {
                  
         stage('Cloning Git') {
             steps {
-                checkout([$class: 'GitSCM', branches: [[name: '*/main']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '', url: 'https://github.com/mmsmannam/aws-lambda-with-docker-image.git']]])     
+                checkout([$class: 'GitSCM', branches: [[name: '*/poc']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '', url: 'https://github.com/mmsmannam/aws-lambda-with-docker-image.git']]])     
              }
         }
     
