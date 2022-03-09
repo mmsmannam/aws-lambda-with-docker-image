@@ -1,7 +1,16 @@
+@Library('swift-libs@2.0.0') _
+
+import lib.JenkinsUtilities
+
+//Create objects
+def utils = new JenkinsUtilities(this) 
+
 pipeline {
     agent any
     environment {
-        AWS_ACCOUNT_ID="884202029588"
+        GIT_REPO = validateParam(env.GIT_REPO, "GIT_REPO")
+        BRANCH_NAME = validateParam(env.BRANCH_NAME, "BRANCH_NAME")
+        AWS_ACCOUNT_ID=validateParam(env.AWS_ACCOUNT_ID, "AWS_ACCOUNT_ID")
         AWS_DEFAULT_REGION="us-east-1" 
         IMAGE_REPO_NAME="docker-lambda"
         IMAGE_TAG="latest"
@@ -29,11 +38,33 @@ pipeline {
            }
          }
                  
-        stage('Cloning Git') {
+        // stage('Cloning Git') {
+        //     steps {
+        //         checkout([$class: 'GitSCM', branches: [[name: '*/poc']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '', url: 'https://github.com/mmsmannam/aws-lambda-with-docker-image.git']]])     
+        //      }
+        // }
+
+        stage('Checkout App Repo'){
             steps {
-                checkout([$class: 'GitSCM', branches: [[name: '*/poc']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '', url: 'https://github.com/mmsmannam/aws-lambda-with-docker-image.git']]])     
-             }
+                checkout([
+                $class: 'GitSCM',
+                branches: [[name: BRANCH_NAME]],
+                extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: BUILD_FOLDER]],
+                userRemoteConfigs: [[url: gitRepo, credentialsId: 'swiftci']]
+                ])
+
+                script {
+                    timestamps {                                      
+                        ansiColor {
+                        yaml_data = readYaml (file: "$BUILD_FOLDER/template.yml") 
+                        env.AWS_ACCOUNT_ID = yaml_data.image.image_name
+                       
+                        }
+                    }
+                }                
+            }
         }
+        
     
        stage('Logging into AWS ECR') {
             steps {
@@ -59,7 +90,9 @@ pipeline {
      steps{  
          script {
                 sh "docker tag ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:$IMAGE_TAG"
+                if ( JENKINS_ENV.toLowerCase() == "poc") {
                 sh "docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}:${IMAGE_TAG}"
+                }
          }
         }
       }
@@ -67,7 +100,9 @@ pipeline {
       stage('Sam deployment') {
           steps{  
          script {
+           if ( JENKINS_ENV.toLowerCase() == "poc") {
             sh "/usr/local/bin/sam deploy --image-repository '${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}:${IMAGE_TAG} --no-confirm-changeset --no-fail-on-empty-changeset --capabilities CAPABILITY_IAM CAPABILITY_AUTO_EXPAND'"   
+           }
           }
      }
      }
