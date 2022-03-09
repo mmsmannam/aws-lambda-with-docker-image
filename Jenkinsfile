@@ -50,14 +50,14 @@ pipeline {
                 checkout([
                 $class: 'GitSCM',
                 branches: [[name: BRANCH_NAME]],
-                extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: BUILD_FOLDER]],
+                //extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: BUILD_FOLDER]],
                 userRemoteConfigs: [[url: gitRepo, credentialsId: 'swiftci']]
                 ])
 
                 script {
                     timestamps {                                      
                         ansiColor {
-                        yaml_data = readYaml (file: "$BUILD_FOLDER/template.yml") 
+                        //yaml_data = readYaml (file: "$BUILD_FOLDER/template.yml") 
                         env.AWS_ACCOUNT_ID = yaml_data.image.image_name
                        
                         }
