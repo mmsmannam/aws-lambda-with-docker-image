@@ -51,7 +51,7 @@ pipeline {
                 $class: 'GitSCM',
                 branches: [[name: BRANCH_NAME]],
                 //extensions: [[$class: 'RelativeTargetDirectory', relativeTargetDir: BUILD_FOLDER]],
-                userRemoteConfigs: [[url: gitRepo, credentialsId: 'swiftci']]
+                userRemoteConfigs: [[url: GIT_REPO, credentialsId: 'swiftci']]
                 ])
 
                 script {
