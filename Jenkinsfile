@@ -58,7 +58,7 @@ pipeline {
                     timestamps {                                      
                         ansiColor {
                         //yaml_data = readYaml (file: "$BUILD_FOLDER/template.yml") 
-                        yaml_data = readYaml (file: "template.yml") 
+                        yaml_data = readYaml (file: "template.yaml") 
                         env.AWS_ACCOUNT_ID = yaml_data.image.image_name
                        
                         }
